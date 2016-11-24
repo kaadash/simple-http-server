@@ -9,6 +9,7 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <string.h>
+#include <ctype.h>
 
 #define ERROR(e) { perror(e); exit(EXIT_FAILURE); }
 #define SERVER_PORT 1234
@@ -33,12 +34,35 @@ char* concat(char* str1, char* str2) {
   return output;
 }
 
+int isBlank(char *line) {
+  char* ch;
+  int isBlankLine = 1;
+  printf("%s\n", line);
+  for (ch = line; *ch != '\0'; ++ch)
+  {
+    if (!isspace(*ch))
+    {
+      isBlankLine = 0;
+      break;
+    }
+  }
+
+  return isBlankLine;
+}
+
 int checkIfFileExist(char* fileName) {
   if( access( fileName, F_OK ) != -1 ) {
     return 1;
   } else {
     return 0;
   }
+}
+
+int getFileSize(FILE* fp) {
+  fseek(fp, 0, SEEK_END);
+  int fileSize = ftell(fp);
+  fseek(fp, 0, SEEK_SET);
+  return fileSize;
 }
 
 int main(int argc, char** argv) {
@@ -54,6 +78,14 @@ int main(int argc, char** argv) {
       "</html>\n";
 
   int not_found_response_template_len = strlen(not_found_response_template);
+
+  char* DEFAULT_RESPONSE_SUCCESS_TEMPLATE = 
+      "HTTP/1.1 200 Success\n";
+  int DEFAULT_RESPONSE_SUCCESS_TEMPLATE_LEN = strlen(DEFAULT_RESPONSE_SUCCESS_TEMPLATE);
+
+  char* METHOD_NOT_ALLOWED = 
+      "HTTP/1.1 405 Method Not Allowed\n";
+  int METHOD_NOT_ALLOWED_LEN = strlen(METHOD_NOT_ALLOWED);
 
 	char buf[4096];
   socklen_t slt;
@@ -112,35 +144,71 @@ int main(int argc, char** argv) {
         fda -= 1;
     		read(i, buf, 2047);
     		if (strncmp(buf, "GET /", 5) == 0) {
-          if (checkIfFileExist(concat("./", getFilePath(buf, 5))) == 1) {
+          char* filePath = concat("./", getFilePath(buf, 5));
+          if (checkIfFileExist(filePath) == 1) {
       			FILE *fp;
-            fp = fopen(concat("./", getFilePath(buf, 5)), "r");
-            fseek(fp, 0, SEEK_END); // seek to end of file
-            int fileSize = ftell(fp); // get current file pointer
-            fseek(fp, 0, SEEK_SET); // seek back to beginning of file
-            printf("file size: %d\n", fileSize);
+            fp = fopen(filePath, "r");
+            int fileSize = getFileSize(fp);
             char *fileContent = malloc(fileSize + 1);
             fread(fileContent, fileSize, 1, fp);
             fclose(fp);
-            printf("%s\n", "GET");
             write(i, fileContent, fileSize);
           } else {
             write(i, not_found_response_template, not_found_response_template_len);
           }
-    		} else if (strncmp(buf, "HEAD /", 5) == 0) {
-          printf("%s\n", "HEAD");
+    		} else if (strncmp(buf, "HEAD /", 6) == 0) {
+          char* filePath = concat("./", getFilePath(buf, 6));
+          if (checkIfFileExist(filePath) == 1) {
+            write(i, DEFAULT_RESPONSE_SUCCESS_TEMPLATE, DEFAULT_RESPONSE_SUCCESS_TEMPLATE_LEN);
+          } else {
+            write(i, not_found_response_template, not_found_response_template_len);
+          }
           write(i, "HEAD!\n", 6);
         } else if (strncmp(buf, "PUT /", 5) == 0) {
-          write(i, "PUT!\n", 5);
-          printf("%s\n", "PUT");
-        } else if (strncmp(buf, "DELETE /", 5) == 0) {
-          printf("%s\n", "DELETE");
-          write(i, "DELETE!\n", 6);
+          char* filePath = concat("./", getFilePath(buf, 5));
+          FILE *fp;
+          fp = fopen(filePath, "w");
+          int i = 0;
+          int j = 0;
+          int shouldWrite = 0;
+          int inputLength = strlen(buf);
+          char fileContentToSave[2047];
+          char tempLine[2047];
+          while (j < inputLength) {
+            if (shouldWrite == 1) {
+              fileContentToSave[i] = buf[j];
+              i++;
+              j++;
+
+            } else {
+              while(buf[j] != '\n') {
+                tempLine[i] = buf[j];
+                j++;
+                i++;
+              }
+              if (isBlank(tempLine) == 1) {
+                shouldWrite = 1;
+              }
+              j++;
+              i = 0;
+              memset(tempLine, 0, sizeof tempLine);
+            }
+          }
+          fclose(fp);
+          write(i, DEFAULT_RESPONSE_SUCCESS_TEMPLATE, DEFAULT_RESPONSE_SUCCESS_TEMPLATE_LEN);
+        } else if (strncmp(buf, "DELETE /", 8) == 0) {
+          char* filePath = concat("./", getFilePath(buf, 8));
+          if (checkIfFileExist(filePath) == 1) {
+            int successfulDelete = remove(filePath);
+            if (successfulDelete == 0) {
+              write(i, DEFAULT_RESPONSE_SUCCESS_TEMPLATE, DEFAULT_RESPONSE_SUCCESS_TEMPLATE_LEN);
+            }
+          } else {
+            write(i, not_found_response_template, not_found_response_template_len);
+          }
         } else {
-          write(i, "Wrong type of request!\n", 6);
-          printf("%s\n", "Wrong type of request");
+          write(i, METHOD_NOT_ALLOWED, METHOD_NOT_ALLOWED_LEN);
   			}
-        write(i, "Hello World!\n", 13);
         close(i);
         FD_CLR(i, &mask);
         if (i == fdmax)
