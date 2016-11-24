@@ -15,6 +15,7 @@
 #define QUEUE_SIZE 5
 
 
+
 char* getFilePath(char *path, int offset) {
   int i = offset;
   char *output = malloc (sizeof (char) * 100);
@@ -41,6 +42,19 @@ int checkIfFileExist(char* fileName) {
 }
 
 int main(int argc, char** argv) {
+  char* not_found_response_template = 
+      "HTTP/1.1 404 Not Found\n"
+      "Content-type: text/html\n"
+      "\n"
+      "<html>\n"
+      " <body>\n"
+      "  <h1>Not Found</h1>\n"
+      "  <p>The requested URL was not found on this server.</p>\n"
+      " </body>\n"
+      "</html>\n";
+
+  int not_found_response_template_len = strlen(not_found_response_template);
+
 	char buf[4096];
   socklen_t slt;
   int sfd, cfd, fdmax, fda, rc, i, on = 1;
@@ -111,7 +125,7 @@ int main(int argc, char** argv) {
             printf("%s\n", "GET");
             write(i, fileContent, fileSize);
           } else {
-            write(i, "404", 3);
+            write(i, not_found_response_template, not_found_response_template_len);
           }
     		} else if (strncmp(buf, "HEAD /", 5) == 0) {
           printf("%s\n", "HEAD");
