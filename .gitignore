@@ -1,1 +1,4 @@
 server
+.idea/
+out/
+Client.iml

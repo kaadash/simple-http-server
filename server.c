@@ -197,6 +197,7 @@ int main(int argc, char** argv) {
           fclose(fp);
           write(i, DEFAULT_RESPONSE_SUCCESS_TEMPLATE, DEFAULT_RESPONSE_SUCCESS_TEMPLATE_LEN);
         } else if (strncmp(buf, "DELETE /", 8) == 0) {
+          printf("heh");
           char* filePath = concat("./", getFilePath(buf, 8));
           if (checkIfFileExist(filePath) == 1) {
             int successfulDelete = remove(filePath);
