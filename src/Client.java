@@ -1,35 +1,49 @@
 /**
  * Created by ronisko on 24.11.16.
  */
-import java.io.BufferedReader;
-import java.io.DataOutputStream;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
+import java.io.*;
+import java.net.*;
 
 public class Client {
 
+
     public static void main(String[] args) throws Exception {
 
-        Client http = new Client();
+        Client client = new Client();
 
-        System.out.println("Send Http DEL request");
-        http.sendDel();
-
+        client.sendGET("localhost", 1234, "2.html");
+        //client.sendDEL("localhost", 1234, "2.html");
     }
 
-    private void sendDel() throws Exception {
+    private void sendGET(String url, int port, String file) throws Exception {
+        System.out.println("Sending GET request.\nResponse:\n");
+        Socket soc = new Socket(url, port);
 
-        String url = "http://localhost:1234/2.html";
+        PrintWriter wtr = new PrintWriter(soc.getOutputStream());
 
-        URL obj = new URL(url);
-        HttpURLConnection con = (HttpURLConnection) obj.openConnection();
+        wtr.println("GET /" + file + " HTTP/1.1");
+        wtr.flush();
 
-        con.setRequestMethod("DELETE");
+        BufferedReader bufRead = new BufferedReader(new InputStreamReader(soc.getInputStream()));
+        String response;
 
-        int responseCode = con.getResponseCode();
-        System.out.println("\nSending 'DEL' request to URL : " + url);
-        System.out.println("Response Code : " + responseCode);
+        while((response = bufRead.readLine()) != null){
+            System.out.println(response);
+        }
 
+        bufRead.close();
+        wtr.close();
     }
+
+    private void sendDEL(String url, int port, String file) throws Exception {
+        System.out.println("Sending DELETE request.");
+        Socket soc = new Socket(url, port);
+
+        PrintWriter wtr = new PrintWriter(soc.getOutputStream());
+
+        wtr.println("DELETE /" + file + " HTTP/1.1");
+        wtr.flush();
+        wtr.close();
+    }
+
 }
