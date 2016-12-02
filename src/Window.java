@@ -1,3 +1,5 @@
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
 import javafx.scene.control.Button;
@@ -23,7 +25,7 @@ public class Window {
         request.getSelectionModel().selectFirst();
 
         TextField address = new TextField();
-        address.setPromptText("IP");
+        address.setPromptText   ("IP");
 //        address.setPrefColumnCount(10);
 //        address.getText();
 
@@ -44,20 +46,22 @@ public class Window {
             }
         });
 
-        TextArea headerSection = new TextArea();
-        headerSection.setEditable(false);
-        headerSection.setMinWidth(800);
+        TextArea headers = new TextArea();
+        headers.setEditable(false);
+        headers.setMinWidth(800);
+        headers.textProperty().bind(Sender.headerProperty());
 
         TextArea information = new TextArea();
         information.setEditable(false);
         information.setMinWidth(800);
+        information.textProperty().bind(Sender.bodyProperty());
 
         gridPane.add(request, 0, 0, 1, 1);
         gridPane.add(address, 1, 0, 1, 1);
         gridPane.add(port, 2, 0, 1, 1);
         gridPane.add(file, 3, 0, 1, 1);
         gridPane.add(button, 4, 0, 1, 1);
-        gridPane.add(headerSection, 0, 1, 4, 1);
+        gridPane.add(headers, 0, 1, 4, 1);
         gridPane.add(information, 0, 2, 4, 3);
     }
 
