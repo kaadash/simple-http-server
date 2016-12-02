@@ -1,21 +1,25 @@
-/**
- * Created by ronisko on 24.11.16.
- */
-import java.io.*;
-import java.net.*;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.net.Socket;
 
-public class Client {
+public class Sender {
+    public static void sendRequest(String url, int port, String file, int choice) throws Exception{
+        switch (choice) {
+            case 0:
+                sendGET(url, port, file);
+                break;
+            case 1:
 
-
-    public static void main(String[] args) throws Exception {
-
-        Client client = new Client();
-
-        client.sendGET("localhost", 1234, "2.html");
-        //client.sendDEL("localhost", 1234, "2.html");
+                break;
+            case 2:
+                break;
+            case 3:
+                sendDELETE(url, port, file);
+                break;
+        }
     }
-
-    private void sendGET(String url, int port, String file) throws Exception {
+    private static void sendGET(String url, int port, String file) throws Exception {
         System.out.println("Sending GET request.\nResponse:\n");
         Socket soc = new Socket(url, port);
 
@@ -35,7 +39,7 @@ public class Client {
         wtr.close();
     }
 
-    private void sendDEL(String url, int port, String file) throws Exception {
+    private static void sendDELETE(String url, int port, String file) throws Exception {
         System.out.println("Sending DELETE request.");
         Socket soc = new Socket(url, port);
 
@@ -45,5 +49,4 @@ public class Client {
         wtr.flush();
         wtr.close();
     }
-
 }
