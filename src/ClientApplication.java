@@ -22,7 +22,7 @@ public class ClientApplication extends Application {
         primaryStage.setTitle("Client");
         Window.prepare();
 
-        Scene scene = new Scene(Window.getGridPane(), 900, 600);
+        Scene scene = new Scene(Window.getGridPane(), 900, 700);
         primaryStage.setScene(scene);
         primaryStage.show();
 

@@ -1,3 +1,4 @@
+import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
@@ -5,29 +6,46 @@ import javafx.geometry.Insets;
 import javafx.scene.control.Button;
 import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.TextField;
+import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.control.TextArea;
+import javafx.scene.paint.Color;
+import javafx.scene.text.Text;
 
 
 public class Window {
     private static GridPane gridPane = new GridPane();
-//    private static final Button button = new Button();
+    private static TextArea headers = new TextArea();
+    private static TextArea information = new TextArea();
+
+    public static void setHeaders(String headers) {
+        Window.headers.setText(headers);
+    }
+
+    public static void setInformation(String information) {
+        Window.information.setText(information);
+    }
+
     public static GridPane getGridPane() {
         return gridPane;
     }
     public static void prepare(){
+        gridPane.setStyle("-fx-background-color: goldenrod");
         gridPane.setPadding(new Insets(20, 50, 20, 50));
-        gridPane.setHgap(10);
-        gridPane.setVgap(10);
-
+        gridPane.setHgap(25);//*4
+        gridPane.setVgap(20);
+        ColumnConstraints cc1 = new ColumnConstraints(100);
+        ColumnConstraints cc2 = new ColumnConstraints(230);
+        ColumnConstraints cc3 = new ColumnConstraints(80);
+        ColumnConstraints cc4 = new ColumnConstraints(230);
+        ColumnConstraints cc5 = new ColumnConstraints(100);
+        gridPane.getColumnConstraints().addAll(cc1, cc2, cc3, cc4, cc5);
         ChoiceBox request = new ChoiceBox(FXCollections.observableArrayList(
                 "GET", "HEAD", "PUT", "DELETE"));
         request.getSelectionModel().selectFirst();
 
         TextField address = new TextField();
-        address.setPromptText   ("IP");
-//        address.setPrefColumnCount(10);
-//        address.getText();
+        address.setPromptText("IP");
 
         TextField port = new TextField();
         port.setPromptText("Port");
@@ -38,31 +56,54 @@ public class Window {
         Button button = new Button();
         button.setText("Send!");
         button.setOnAction(e -> {
-            try {
-                Sender.sendRequest(address.getText(), Integer.valueOf(port.getText()),
-                        file.getText(), request.getSelectionModel().getSelectedIndex());
-            } catch (Exception ee) {
-
-            }
+            new Thread(() -> {
+                    setHeaders("");
+                    setInformation("");
+                    switch (request.getSelectionModel().getSelectedIndex()) {
+                        case 0:
+                            Sender.sendGET(address.getText(), Integer.valueOf(port.getText()), file.getText());
+                            break;
+                        case 1:
+                            Sender.sendHEAD(address.getText(), Integer.valueOf(port.getText()), file.getText());
+                            break;
+                        case 2:
+                            Sender.sendPUT(address.getText(), Integer.valueOf(port.getText()), file.getText());
+                            break;
+                        case 3:
+                            Sender.sendDELETE(address.getText(), Integer.valueOf(port.getText()), file.getText());
+                            break;
+                    }
+            }).start();
         });
 
-        TextArea headers = new TextArea();
+        Text text1 = new Text("headers:");
+        Text text2 = new Text("body:");
+        Text text3 = new Text("~Sieci Komputerowe~");
+        text1.setStyle("-fx-font-size: 30px");
+        text1.setFill(Color.SADDLEBROWN);
+        text2.setStyle("-fx-font-size: 30px");
+        text2.setFill(Color.SADDLEBROWN);
+        text3.setStyle(
+                "-fx-fill: linear-gradient(from 0% 0% to 100% 100%, repeat, indigo 0%, magenta 100%);" +
+                "-fx-font-size: 50px"
+        );
+
         headers.setEditable(false);
         headers.setMinWidth(800);
-        headers.textProperty().bind(Sender.headerProperty());
 
-        TextArea information = new TextArea();
         information.setEditable(false);
         information.setMinWidth(800);
-        information.textProperty().bind(Sender.bodyProperty());
 
         gridPane.add(request, 0, 0, 1, 1);
         gridPane.add(address, 1, 0, 1, 1);
         gridPane.add(port, 2, 0, 1, 1);
         gridPane.add(file, 3, 0, 1, 1);
         gridPane.add(button, 4, 0, 1, 1);
-        gridPane.add(headers, 0, 1, 4, 1);
-        gridPane.add(information, 0, 2, 4, 3);
+        gridPane.add(text1, 0, 1, 1, 1);
+        gridPane.add(headers, 0, 2, 4, 1);
+        gridPane.add(text2, 0, 3, 1, 1);
+        gridPane.add(information, 0, 4, 4, 3);
+        gridPane.add(text3, 1, 8, 3, 3);
     }
 
 }
