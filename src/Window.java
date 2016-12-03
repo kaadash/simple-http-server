@@ -30,7 +30,7 @@ public class Window {
         return gridPane;
     }
     public static void prepare(){
-        gridPane.setStyle("-fx-background-color: goldenrod");
+        gridPane.setStyle("-fx-background-color: #303030");
         gridPane.setPadding(new Insets(20, 50, 20, 50));
         gridPane.setHgap(25);//*4
         gridPane.setVgap(20);
@@ -80,13 +80,11 @@ public class Window {
         Text text2 = new Text("body:");
         Text text3 = new Text("~Sieci Komputerowe~");
         text1.setStyle("-fx-font-size: 30px");
-        text1.setFill(Color.SADDLEBROWN);
+        text1.setFill(Color.RED);
         text2.setStyle("-fx-font-size: 30px");
-        text2.setFill(Color.SADDLEBROWN);
-        text3.setStyle(
-                "-fx-fill: linear-gradient(from 0% 0% to 100% 100%, repeat, indigo 0%, magenta 100%);" +
-                "-fx-font-size: 50px"
-        );
+        text2.setFill(Color.RED);
+        text3.setStyle("-fx-font-size: 50px");
+        text3.setFill(Color.RED);
 
         headers.setEditable(false);
         headers.setMinWidth(800);

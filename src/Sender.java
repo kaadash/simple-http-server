@@ -18,15 +18,9 @@ public class Sender {
                 wtr.println("GET /" + file + " HTTP/1.1");
                 wtr.flush();
 
-                BufferedReader bufRead = new BufferedReader(new InputStreamReader(soc.getInputStream()));
-                String response;
-                String message = new String();
-                while((response = bufRead.readLine()) != null){
-                    message += response + '\n';
-                }
-                Window.setInformation(message);
-                bufRead.close();
+                Window.setInformation(read(soc));
                 wtr.close();
+
             } catch (Exception e) {
 
             }
@@ -41,14 +35,7 @@ public class Sender {
             wtr.println("HEAD /" + file + " HTTP/1.1");
             wtr.flush();
 
-            BufferedReader bufRead = new BufferedReader(new InputStreamReader(soc.getInputStream()));
-            String response;
-            String headers = new String();
-            while((response = bufRead.readLine()) != null){
-                headers += response + '\n';
-            }
-            Window.setHeaders(headers);
-            bufRead.close();
+            Window.setHeaders(read(soc));
             wtr.close();
         } catch (Exception e) {
 
@@ -78,9 +65,25 @@ public class Sender {
 
             wtr.println("DELETE /" + file + " HTTP/1.1");
             wtr.flush();
+            Window.setHeaders(read(soc));
             wtr.close();
         } catch (Exception e) {
 
         }
+    }
+    private static String read(Socket soc) {
+        String message = "";
+        try {
+            BufferedReader bufRead = new BufferedReader(new InputStreamReader(soc.getInputStream()));
+            String response;
+
+            while((response = bufRead.readLine()) != null){
+                message += response + '\n';
+            }
+            bufRead.close();
+        } catch (Exception e) {
+
+        }
+        return message;
     }
 }
