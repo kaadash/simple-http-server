@@ -1,6 +1,8 @@
 import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
 import javafx.scene.control.Button;
@@ -29,6 +31,11 @@ public class Window {
     public static GridPane getGridPane() {
         return gridPane;
     }
+
+    public static String getInformation() {
+        return information.getText();
+    }
+
     public static void prepare(){
         gridPane.setStyle("-fx-background-color: #303030");
         gridPane.setPadding(new Insets(20, 50, 20, 50));
@@ -43,6 +50,27 @@ public class Window {
         ChoiceBox request = new ChoiceBox(FXCollections.observableArrayList(
                 "GET", "HEAD", "PUT", "DELETE"));
         request.getSelectionModel().selectFirst();
+        request.getSelectionModel().selectedIndexProperty().addListener(new ChangeListener<Number>() {
+            @Override
+            public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
+                switch (newValue.intValue()){
+                    case 0:
+                    case 1:
+                    case 3:
+                        information.setStyle("-fx-opacity: 0.5");
+                        information.setEditable(false);
+                        setHeaders("");
+                        setInformation("");
+                        break;
+                    case 2:
+                        information.setStyle("-fx-opacity: 1.0");
+                        information.setEditable(true);
+                        setHeaders("");
+                        setInformation("");
+                        break;
+                }
+            }
+        });
 
         TextField address = new TextField();
         address.setPromptText("IP");
@@ -58,9 +86,9 @@ public class Window {
         button.setOnAction(e -> {
             new Thread(() -> {
                     setHeaders("");
-                    setInformation("");
                     switch (request.getSelectionModel().getSelectedIndex()) {
                         case 0:
+                            setInformation("");
                             Sender.sendGET(address.getText(), Integer.valueOf(port.getText()), file.getText());
                             break;
                         case 1:
@@ -87,9 +115,11 @@ public class Window {
         text3.setFill(Color.RED);
 
         headers.setEditable(false);
+        headers.setStyle("-fx-opacity: 0.5");
         headers.setMinWidth(800);
 
         information.setEditable(false);
+        information.setStyle("-fx-opacity: 0.5");
         information.setMinWidth(800);
 
         gridPane.add(request, 0, 0, 1, 1);
