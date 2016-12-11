@@ -105,11 +105,10 @@ int main(int argc, char** argv) {
     		} else if (strncmp(buf, "HEAD /", 6) == 0) {
           char* filePath = concat("./", getFilePath(buf, 6));
           if (checkIfFileExist(filePath) == 1) {
-            write(i, DEFAULT_RESPONSE_SUCCESS_TEMPLATE, DEFAULT_RESPONSE_SUCCESS_TEMPLATE_LEN);
+            write(i, buf, strlen(buf));
           } else {
             write(i, not_found_response_template, not_found_response_template_len);
           }
-          write(i, "HEAD!\n", 6);
         
         // PUT
 
