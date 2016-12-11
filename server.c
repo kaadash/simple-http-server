@@ -94,7 +94,8 @@ int main(int argc, char** argv) {
             char *fileContent = malloc(fileSize + 1);
             fread(fileContent, fileSize, 1, fp);
             fclose(fp);
-            write(i, fileContent, fileSize);
+            printf("%s\n", concat(DEFAULT_RESPONSE_SUCCESS_TEMPLATE, fileContent));
+            write(i, concat(DEFAULT_RESPONSE_SUCCESS_TEMPLATE, fileContent), fileSize + DEFAULT_RESPONSE_SUCCESS_TEMPLATE_LEN);
             free(fileContent);
           } else {
             write(i, not_found_response_template, not_found_response_template_len);
@@ -109,6 +110,7 @@ int main(int argc, char** argv) {
           } else {
             write(i, not_found_response_template, not_found_response_template_len);
           }
+          
         
         // PUT
 

@@ -1,6 +1,9 @@
 char* not_found_response_template = 
       "HTTP/1.1 404 Not Found\n"
       "Content-type: text/html\n"
+      "\r"
+      "\n"
+      "\r"
       "\n"
       "<html>\n"
       " <body>\n"
@@ -10,6 +13,14 @@ char* not_found_response_template =
       "</html>\n";
 
 char* DEFAULT_RESPONSE_SUCCESS_TEMPLATE = 
-    "HTTP/1.1 200 Success\n";
+    "HTTP/1.1 200 Success\n"
+    "\r"
+    "\n"
+    "\r"
+    "\n";
 char* METHOD_NOT_ALLOWED = 
-    "HTTP/1.1 405 Method Not Allowed\n";
+    "HTTP/1.1 405 Method Not Allowed\n"
+    "\r"
+    "\n"
+    "\r"
+    "\n";
