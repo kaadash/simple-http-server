@@ -10,60 +10,11 @@
 #include <sys/socket.h>
 #include <string.h>
 #include <ctype.h>
+#include "helpers.h"
 
 #define ERROR(e) { perror(e); exit(EXIT_FAILURE); }
 #define SERVER_PORT 1234
 #define QUEUE_SIZE 5
-
-
-
-char* getFilePath(char *path, int offset) {
-  int i = offset;
-  char *output = malloc (sizeof (char) * 100);
-  while (path[i] != ' ') {
-    output[i - offset] = path[i];
-    i++;
-  }
-  return output;
-}
-
-char* concat(char* str1, char* str2) {
-  char * output = (char *) malloc(1 + strlen(str1)+ strlen(str2) );
-  strcpy(output, str1);
-  strcat(output, str2);
-  return output;
-}
-
-int isBlank(char *line) {
-  char* ch;
-  int isBlankLine = 1;
-  printf("%s\n", line);
-  for (ch = line; *ch != '\0'; ++ch)
-  {
-    if (!isspace(*ch))
-    {
-      isBlankLine = 0;
-      break;
-    }
-  }
-
-  return isBlankLine;
-}
-
-int checkIfFileExist(char* fileName) {
-  if( access( fileName, F_OK ) != -1 ) {
-    return 1;
-  } else {
-    return 0;
-  }
-}
-
-int getFileSize(FILE* fp) {
-  fseek(fp, 0, SEEK_END);
-  int fileSize = ftell(fp);
-  fseek(fp, 0, SEEK_SET);
-  return fileSize;
-}
 
 int main(int argc, char** argv) {
   char* not_found_response_template = 
@@ -142,7 +93,14 @@ int main(int argc, char** argv) {
     for (i = sfd+1; i <= fdmax && fda > 0; i++)
       if (FD_ISSET(i, &wmask)) {
         fda -= 1;
-    		read(i, buf, 2047);
+        int iter = 0;
+        int numberOfBytesRead = -1;
+        while(!isEndOfHeader(buf)) {
+          numberOfBytesRead = read(i, buf + iter, 1);
+          iter += numberOfBytesRead;
+        }
+        // GET
+
     		if (strncmp(buf, "GET /", 5) == 0) {
           char* filePath = concat("./", getFilePath(buf, 5));
           if (checkIfFileExist(filePath) == 1) {
@@ -156,6 +114,9 @@ int main(int argc, char** argv) {
           } else {
             write(i, not_found_response_template, not_found_response_template_len);
           }
+
+        // HEAD
+
     		} else if (strncmp(buf, "HEAD /", 6) == 0) {
           char* filePath = concat("./", getFilePath(buf, 6));
           if (checkIfFileExist(filePath) == 1) {
@@ -164,38 +125,28 @@ int main(int argc, char** argv) {
             write(i, not_found_response_template, not_found_response_template_len);
           }
           write(i, "HEAD!\n", 6);
+        
+        // PUT
+
         } else if (strncmp(buf, "PUT /", 5) == 0) {
           char* filePath = concat("./", getFilePath(buf, 5));
+          int fileContentIndex = 0;
+          int contentLength = getContentLength(buf);
           FILE *fp;
           fp = fopen(filePath, "w");
-          int i = 0;
-          int j = 0;
-          int shouldWrite = 0;
-          int inputLength = strlen(buf);
-          char fileContentToSave[2047];
-          char tempLine[2047];
-          while (j < inputLength) {
-            if (shouldWrite == 1) {
-              fileContentToSave[i] = buf[j];
-              i++;
-              j++;
-
-            } else {
-              while(buf[j] != '\n') {
-                tempLine[i] = buf[j];
-                j++;
-                i++;
-              }
-              if (isBlank(tempLine) == 1) {
-                shouldWrite = 1;
-              }
-              j++;
-              i = 0;
-              memset(tempLine, 0, sizeof tempLine);
-            }
+          char *fileContentToSave = malloc(contentLength + 1);
+          while (fileContentIndex < contentLength) {
+            read(i, fileContentToSave + fileContentIndex, 1);
+            fileContentIndex++;
           }
+          printf("%s\n", fileContentToSave);
+          fputs(fileContentToSave, fp);
           fclose(fp);
+          free(fileContentToSave);
           write(i, DEFAULT_RESPONSE_SUCCESS_TEMPLATE, DEFAULT_RESPONSE_SUCCESS_TEMPLATE_LEN);
+
+        // DELETE  
+
         } else if (strncmp(buf, "DELETE /", 8) == 0) {
           char* filePath = concat("./", getFilePath(buf, 8));
           if (checkIfFileExist(filePath) == 1) {
