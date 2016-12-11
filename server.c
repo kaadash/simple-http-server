@@ -160,6 +160,7 @@ int main(int argc, char** argv) {
         } else {
           write(i, METHOD_NOT_ALLOWED, METHOD_NOT_ALLOWED_LEN);
   			}
+         memset(buf, 0, sizeof buf);
         close(i);
         FD_CLR(i, &mask);
         if (i == fdmax)
