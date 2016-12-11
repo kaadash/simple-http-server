@@ -1,7 +1,3 @@
-import javafx.application.Platform;
-import javafx.beans.property.SimpleStringProperty;
-import javafx.beans.property.StringProperty;
-
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
@@ -10,32 +6,37 @@ import java.net.Socket;
 public class Sender {
 
     public static void sendGET(String url, int port, String file) {
-            try {
-                System.out.println("Sending GET request.\nResponse:\n");
-                Socket soc = new Socket(url, port);
-                PrintWriter wtr = new PrintWriter(soc.getOutputStream());
+        try {
+            Socket soc = new Socket(url, port);
+            PrintWriter wtr = new PrintWriter(soc.getOutputStream());
 
-                wtr.println("GET /" + file + " HTTP/1.1");
-                wtr.flush();
+            wtr.print("GET /" + file + " HTTP/1.1\r\n\r\n");
+            wtr.flush();
 
-                Window.setInformation(read(soc));
-                wtr.close();
+            BufferedReader bufRead = new BufferedReader(new InputStreamReader(soc.getInputStream()));
 
-            } catch (Exception e) {
+            Window.setHeaders(read(bufRead));
+            Window.setInformation(read(bufRead));
+            bufRead.close();
+            wtr.close();
 
-            }
+        } catch (Exception e) {
+
+        }
     }
     public static void sendHEAD(String url, int port, String file){
         try {
-            System.out.println("Sending HEAD request.\nResponse:\n");
             Socket soc = new Socket(url, port);
 
             PrintWriter wtr = new PrintWriter(soc.getOutputStream());
 
-            wtr.println("HEAD /" + file + " HTTP/1.1");
+            wtr.print("HEAD /" + file + " HTTP/1.1\r\n\r\n");
             wtr.flush();
 
-            Window.setHeaders(read(soc));
+            BufferedReader bufRead = new BufferedReader(new InputStreamReader(soc.getInputStream()));
+
+            Window.setHeaders(read(bufRead));
+            bufRead.close();
             wtr.close();
         } catch (Exception e) {
 
@@ -43,12 +44,13 @@ public class Sender {
     }
     public static void sendPUT(String url, int port, String file) {
         try {
-            System.out.println("Sending PUT request.\nResponse:\n");
             Socket soc = new Socket(url, port);
 
             PrintWriter wtr = new PrintWriter(soc.getOutputStream());
 
-            wtr.println("PUT /" + file + " HTTP/1.1");
+            wtr.print("PUT /" + file + " HTTP/1.1\r\n");
+            wtr.print("Content-Length: " + Window.getInformation().length() + "\r\n\r\n");
+            wtr.print(Window.getInformation() + "\r\n");
             wtr.flush();
 
             wtr.close();
@@ -58,29 +60,30 @@ public class Sender {
     }
     public static void sendDELETE(String url, int port, String file) {
         try {
-            System.out.println("Sending DELETE request.");
             Socket soc = new Socket(url, port);
 
             PrintWriter wtr = new PrintWriter(soc.getOutputStream());
 
-            wtr.println("DELETE /" + file + " HTTP/1.1");
+            wtr.print("DELETE /" + file + " HTTP/1.1\r\n\r\n");
             wtr.flush();
-            Window.setHeaders(read(soc));
+
+            BufferedReader bufRead = new BufferedReader(new InputStreamReader(soc.getInputStream()));
+
+            Window.setHeaders(read(bufRead));
+            bufRead.close();
             wtr.close();
         } catch (Exception e) {
 
         }
     }
-    private static String read(Socket soc) {
+    private static String read(BufferedReader bufRead) {
         String message = "";
         try {
-            BufferedReader bufRead = new BufferedReader(new InputStreamReader(soc.getInputStream()));
             String response;
 
-            while((response = bufRead.readLine()) != null){
+            while(!(response = bufRead.readLine()).equals("")){
                 message += response + '\n';
             }
-            bufRead.close();
         } catch (Exception e) {
 
         }
