@@ -16,6 +16,7 @@ public class Sender {
             BufferedReader bufRead = new BufferedReader(new InputStreamReader(soc.getInputStream()));
 
             Window.setHeaders(read(bufRead));
+            bufRead.readLine();
             Window.setInformation(read(bufRead));
             bufRead.close();
             wtr.close();
